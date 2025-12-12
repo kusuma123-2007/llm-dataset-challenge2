@@ -1,0 +1,12 @@
+{
+  "[PAD]": 0,
+  "[UNK]": 1,
+  "[CLS]": 2,
+  "[SEP]": 3,
+  "▁the": 4,
+  "▁and": 5,
+  "▁patient": 6,
+  "▁patients": 7,
+  "▁blood": 8,
+  "pressure": 9
+}
