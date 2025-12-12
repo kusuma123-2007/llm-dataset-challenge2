@@ -1,0 +1,71 @@
+# health_dataset_clean.py
+"""
+Read `health_dataset_100.jsonl` (one JSON object per line),
+clean text fields, ensure metadata fields exist, and write
+`health_dataset_clean.jsonl`. Each output line contains:
+{ "title": "...", "domain":"health", "source":"...", "content":"..." }
+"""
+
+import json
+import re
+import sys
+from pathlib import Path
+
+INPUT = Path("health_dataset_100.jsonl")
+OUTPUT = Path("health_dataset_clean.jsonl")
+
+def clean_text(s: str) -> str:
+    if not s:
+        return ""
+    # Normalize whitespace
+    s = s.replace("\r", " ").replace("\n", " ")
+    s = re.sub(r"\s+", " ", s).strip()
+    # Remove control characters and odd punctuation but keep medical chars
+    s = re.sub(r"[^\w\s\-\.,;:()\/%']", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+def process():
+    if not INPUT.exists():
+        print(f"ERROR: {INPUT} not found. Place your raw dataset there.", file=sys.stderr)
+        sys.exit(1)
+
+    written = 0
+    with INPUT.open("r", encoding="utf-8") as fin, OUTPUT.open("w", encoding="utf-8") as fout:
+        for line in fin:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+            except Exception:
+                # skip corrupt lines
+                continue
+
+            title = obj.get("title") or obj.get("heading") or ""
+            source = obj.get("source") or obj.get("url") or "unknown"
+            domain = obj.get("domain") or "health"
+            # prefer content or text fields
+            content = obj.get("content") or obj.get("text") or ""
+            if not content and title:
+                content = title
+
+            content = clean_text(content)
+            title = clean_text(title)
+
+            if len(content) < 20:
+                continue
+
+            out = {
+                "title": title if title else "health_topic",
+                "domain": domain,
+                "source": source,
+                "content": content
+            }
+            fout.write(json.dumps(out, ensure_ascii=False) + "\n")
+            written += 1
+
+    print(f"Wrote {written} cleaned records to {OUTPUT}")
+
+if __name__ == "__main__":
+    process()
