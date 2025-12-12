@@ -1,0 +1,25 @@
+{
+  "model": {
+    "type": "BPE",
+    "vocab": {
+      "[PAD]": 0,
+      "[UNK]": 1,
+      "▁the": 4
+    },
+    "merges": [
+      ["t", "h"],
+      ["th", "e"]
+    ]
+  },
+  "normalizer": {
+    "type": "sequence",
+    "normalizers": [
+      {"type": "nfd"},
+      {"type": "lowercase"},
+      {"type": "strip_accents"}
+    ]
+  },
+  "pre_tokenizer": {"type": "whitespace"},
+  "post_processor": null,
+  "version": "0.0.0-demo"
+}
